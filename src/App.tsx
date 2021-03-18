@@ -63,7 +63,7 @@ function useMyCustomHook() {
 
   const [state, dispatch] = useReducer(reducer, InitalState);
 
-  const Start = useCallback(() => {
+  const ButtonStart = useCallback(() => {
     const startContext = useContext(StateContext);
     return (
       <button
@@ -77,7 +77,7 @@ function useMyCustomHook() {
     );
   }, []);
 
-  const Stop = useCallback(() => {
+  const ButtonStop = useCallback(() => {
     const stopContext = useContext(StateContext);
     return (
       <button
@@ -92,7 +92,7 @@ function useMyCustomHook() {
     );
   }, []);
 
-  const Pause = useCallback(() => {
+  const ButtonPause = useCallback(() => {
     const pauseContext = useContext(StateContext);
     return (
       <button
@@ -106,7 +106,7 @@ function useMyCustomHook() {
     );
   }, []);
 
-  const Reset = useCallback(() => {
+  const ButtonReset = useCallback(() => {
     const resetContext = useContext(StateContext);
     return (
       <button
@@ -120,7 +120,7 @@ function useMyCustomHook() {
     );
   }, []);
 
-  const Lap = useCallback(() => {
+  const ButtonLap = useCallback(() => {
     const lapContext = useContext(StateContext);
     return (
       <button
@@ -155,7 +155,14 @@ function useMyCustomHook() {
     };
   }, [state.status]);
 
-  return { Start, Stop, Pause, Reset, Lap, state };
+  return {
+    ButtonStart,
+    ButtonStop,
+    ButtonPause,
+    ButtonReset,
+    ButtonLap,
+    state,
+  };
 }
 const StateContext = React.createContext<State>({
   seconds: 0,
@@ -164,18 +171,25 @@ const StateContext = React.createContext<State>({
 });
 
 function App() {
-  const { Start, Stop, Pause, Reset, Lap, state } = useMyCustomHook();
+  const {
+    ButtonStart,
+    ButtonStop,
+    ButtonPause,
+    ButtonReset,
+    ButtonLap,
+    state,
+  } = useMyCustomHook();
 
   return (
     <>
       <StateContext.Provider value={state}>
         <div className="p-3">
           <div className="flex">
-            <Start />
-            <Stop />
-            <Pause />
-            <Reset />
-            <Lap />
+            <ButtonStart />
+            <ButtonStop />
+            <ButtonPause />
+            <ButtonReset />
+            <ButtonLap />
           </div>
           <div>Timer: {state.seconds} secondi</div>
           <div>
