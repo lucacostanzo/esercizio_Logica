@@ -1,62 +1,170 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useReducer, useCallback } from 'react';
 import './App.css';
 import 'tailwindcss/tailwind.css';
-import faker from 'faker';
-import arrayMove from 'array-move';
-import Functions from './Functions';
 
-interface Item {}
+interface State {
+  seconds: number;
+  laps: number[];
+  status: 'Started' | 'Stopped' | 'Paused';
+}
 
-function App(props: Item) {
-  const [country, setCountry] = useState(
-    new Array(10).fill({}).map((list) => faker.address.country()),
-  );
-  const handleAddClick = () => {
-    const newCountry = faker.address.country();
-    setCountry([...country, newCountry]);
+interface Action {
+  type: 'Start' | 'Stop' | 'Pause' | 'Reset' | 'Lap' | 'Interval';
+  payload?: {};
+}
+
+function useMyCustomHook(props: State) {
+  function reducer(state: State, action: Action): State {
+    switch (action.type) {
+      case 'Start':
+        return {
+          ...state,
+          status: 'Started',
+        };
+      case 'Stop':
+        return {
+          ...state,
+          status: 'Stopped',
+          seconds: 0,
+        };
+      case 'Pause':
+        return {
+          ...state,
+          status: 'Paused',
+        };
+      case 'Reset':
+        return {
+          seconds: 0,
+          laps: [],
+          status: 'Stopped',
+        };
+      case 'Lap':
+        return {
+          ...state,
+          laps: [...state.laps, state.seconds],
+          seconds: 0,
+        };
+      case 'Interval':
+        return { ...state, seconds: state.seconds + 1 };
+    }
+  }
+
+  const InitalState: State = {
+    seconds: 0,
+    laps: [],
+    status: 'Stopped',
   };
-  const handleRemoveClick = (i: number) => {
-    const singleCountry = country[i];
-    setCountry(country.filter((list) => singleCountry != list));
-  };
-  const handleMoveUpClick = (i: number) => {
-    const ArrayMoved = arrayMove(country, i - 1, i);
-    setCountry(ArrayMoved);
-  };
-  const handleMoveDownClick = (i: number) => {
-    const ArrayMoved = arrayMove(country, i + 1, i);
-    setCountry(ArrayMoved);
-  };
+
+  const [state, dispatch] = useReducer(reducer, InitalState);
+
+  const Start = useCallback((props: State) => {
+    return (
+      <button
+        className="bg-green-500 rounded mr-3 px-3 py-1"
+        onClick={() => {
+          dispatch({ type: 'Start' });
+        }}
+      >
+        Start
+      </button>
+    );
+  }, []);
+
+  const Stop = useCallback((props: State) => {
+    return (
+      <button
+        className="bg-red-500 rounded mr-3 px-3 py-1 "
+        onClick={() => {
+          dispatch({ type: 'Pause' });
+          dispatch({ type: 'Stop' });
+        }}
+      >
+        Stop
+      </button>
+    );
+  }, []);
+
+  const Pause = useCallback((props: State) => {
+    return (
+      <button
+        className="bg-gray-500 rounded mr-3 px-3 py-1 "
+        onClick={() => {
+          dispatch({ type: 'Pause' });
+        }}
+      >
+        Pause
+      </button>
+    );
+  }, []);
+
+  const Reset = useCallback((props: State) => {
+    return (
+      <button
+        className="bg-blue-500 rounded mr-3 px-3 py-1 "
+        onClick={() => {
+          dispatch({ type: 'Reset' });
+        }}
+      >
+        Reset
+      </button>
+    );
+  }, []);
+
+  const Lap = useCallback((props: State) => {
+    return (
+      <button
+        className="bg-pink-500 rounded mr-3 px-3 py-1 "
+        onClick={() => {
+          let time = state.seconds;
+          const newLap = [...state.laps, time];
+          dispatch({ type: 'Lap' });
+        }}
+      >
+        Set Lap
+      </button>
+    );
+  }, []);
+
+  useEffect(() => {
+    if (state.status == 'Paused') {
+      return;
+    }
+
+    if (state.status == 'Stopped') {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      console.log(dispatch);
+      dispatch({ type: 'Interval' });
+    }, 1000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [state.status]);
+
+  return { Start, Stop, Pause, Reset, Lap, state };
+}
+
+function App(props: State) {
+  const { Start, Stop, Pause, Reset, Lap, state } = useMyCustomHook(props);
 
   return (
-    <div>
-      {country.map((list, index) => (
-        <div className="flex py-1 border">
-          <div key={index} className="flex-grow">
-            {list}
-          </div>
-          <Functions
-            text="Remove"
-            onClick={() => handleRemoveClick(index)}
-            style="ml-3 text-sm bg-red-600 pl-2 pr-2 rounded mr-2"
-          ></Functions>
-          <Functions
-            text="Move Up"
-            onClick={() => handleMoveUpClick(index)}
-            style="ml-3 text-sm bg-gray-400 pl-2 pr-2 rounded mr-2"
-          ></Functions>
-          <Functions
-            text="Move Down"
-            onClick={() => handleMoveDownClick(index)}
-            style="ml-3 text-sm bg-gray-400 pl-2 pr-2 rounded mr-2"
-          ></Functions>
-        </div>
-      ))}
-      <Functions
-        text="Add"
-        onClick={handleAddClick}
-        style="ml-3 text-sm bg-blue-400 pl-3 pr-3 rounded my-5"
-      ></Functions>
+    <div className="p-3">
+      <div className="flex">
+        <Start {...state} />
+        <Stop {...state} />
+        <Pause {...state} />
+        <Reset {...state} />
+        <Lap {...state} />
+      </div>
+      <div>Timer: {state.seconds} secondi</div>
+      <div>
+        {state.laps.map((lap, index) => (
+          <div key={index}>Lap: {lap}</div>
+        ))}
+      </div>
     </div>
   );
 }
