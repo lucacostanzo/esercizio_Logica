@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useReducer, useCallback } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useReducer,
+  useCallback,
+  useContext,
+} from 'react';
 import './App.css';
 import 'tailwindcss/tailwind.css';
 
@@ -13,7 +19,7 @@ interface Action {
   payload?: {};
 }
 
-function useMyCustomHook(props: State) {
+function useMyCustomHook() {
   function reducer(state: State, action: Action): State {
     switch (action.type) {
       case 'Start':
@@ -57,7 +63,8 @@ function useMyCustomHook(props: State) {
 
   const [state, dispatch] = useReducer(reducer, InitalState);
 
-  const Start = useCallback((props: State) => {
+  const Start = useCallback(() => {
+    const startContext = useContext(StateContext);
     return (
       <button
         className="bg-green-500 rounded mr-3 px-3 py-1"
@@ -70,7 +77,8 @@ function useMyCustomHook(props: State) {
     );
   }, []);
 
-  const Stop = useCallback((props: State) => {
+  const Stop = useCallback(() => {
+    const stopContext = useContext(StateContext);
     return (
       <button
         className="bg-red-500 rounded mr-3 px-3 py-1 "
@@ -84,7 +92,8 @@ function useMyCustomHook(props: State) {
     );
   }, []);
 
-  const Pause = useCallback((props: State) => {
+  const Pause = useCallback(() => {
+    const pauseContext = useContext(StateContext);
     return (
       <button
         className="bg-gray-500 rounded mr-3 px-3 py-1 "
@@ -97,7 +106,8 @@ function useMyCustomHook(props: State) {
     );
   }, []);
 
-  const Reset = useCallback((props: State) => {
+  const Reset = useCallback(() => {
+    const resetContext = useContext(StateContext);
     return (
       <button
         className="bg-blue-500 rounded mr-3 px-3 py-1 "
@@ -110,7 +120,8 @@ function useMyCustomHook(props: State) {
     );
   }, []);
 
-  const Lap = useCallback((props: State) => {
+  const Lap = useCallback(() => {
+    const lapContext = useContext(StateContext);
     return (
       <button
         className="bg-pink-500 rounded mr-3 px-3 py-1 "
@@ -146,26 +157,35 @@ function useMyCustomHook(props: State) {
 
   return { Start, Stop, Pause, Reset, Lap, state };
 }
+const StateContext = React.createContext<State>({
+  seconds: 0,
+  laps: [],
+  status: 'Stopped',
+});
 
-function App(props: State) {
-  const { Start, Stop, Pause, Reset, Lap, state } = useMyCustomHook(props);
+function App() {
+  const { Start, Stop, Pause, Reset, Lap, state } = useMyCustomHook();
 
   return (
-    <div className="p-3">
-      <div className="flex">
-        <Start {...state} />
-        <Stop {...state} />
-        <Pause {...state} />
-        <Reset {...state} />
-        <Lap {...state} />
-      </div>
-      <div>Timer: {state.seconds} secondi</div>
-      <div>
-        {state.laps.map((lap, index) => (
-          <div key={index}>Lap: {lap}</div>
-        ))}
-      </div>
-    </div>
+    <>
+      <StateContext.Provider value={state}>
+        <div className="p-3">
+          <div className="flex">
+            <Start />
+            <Stop />
+            <Pause />
+            <Reset />
+            <Lap />
+          </div>
+          <div>Timer: {state.seconds} secondi</div>
+          <div>
+            {state.laps.map((lap, index) => (
+              <div key={index}>Lap: {lap}</div>
+            ))}
+          </div>
+        </div>
+      </StateContext.Provider>
+    </>
   );
 }
 
